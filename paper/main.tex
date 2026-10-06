@@ -64,7 +64,6 @@
 \author{Samuel Mausberg\\Independent Researcher}
 \date{}
 
-% Keep all prose, including captions and references, at the 11-point body size.
 \crefname{equation}{equation}{equations}
 \Crefname{equation}{Equation}{Equations}
 \crefname{figure}{Figure}{Figures}
@@ -89,7 +88,7 @@ Independent Researcher
 Every bounded deterministic real-arithmetic program that computes exact
 softmax attention on $Q,K,V\in\R^{n\times d}$ requires
 $\Omega(nd+n^2/M)$ transfers between slow memory and an $M$-word cache,
-for $n\ge d^2$, $d\ge2$, and $M\ge d^2$. The allowed operations are
+for $n\ge2$, $d\ge2$, and $M\ge d^2$. The allowed operations are
 $+,-,\times,\div,\exp$; recomputation and finite branching are permitted.
 No pairwise intermediate value is prescribed. The proof adjoins the
 entries of each epoch's local Jacobian to a field that retains all earlier
@@ -102,9 +101,11 @@ the entire attention coefficient field after
 $O(nd^{\sigma-1}+n^2d^{\sigma-2}/M)$ transfers, where $\sigma=\log_2 7$.
 This prefix can occur in a correct $O(n^2d)$-work program, yet on a
 parameter sequence it costs $o(nd+n^2d/M)$. It computes an auxiliary
-vector, not attention. A separate numerical compression theorem gives
-$\Omega(nd+n^2d^2/M)$ when the epochs recover all pair scores or kernels;
-that recovery hypothesis is not part of the unrestricted lower bound.
+vector, not attention. We also prove the full
+$\Omega(nd+n^2d^2/M)$ bound when each exponential argument is a polynomial
+in the full dot-product scores, even if no individual score is formed.
+A second-derivative argument bounds the dimension of arbitrary linear
+score mixtures recoverable from numerical summaries.
 \end{titlepage}
 \hypersetup{pageanchor=true}
 \setcounter{page}{1}
@@ -127,10 +128,11 @@ a program to form those scores. Products of coordinate-wise
 exponentials already avoid them, and more general rearrangements
 can combine terms before an individual kernel entry is available.
 Our lower bound makes no assumption about these intermediate values.
+A stronger bound holds under a restriction on the exponential arguments.
 
 \begin{theorem}[Exact attention]
 \label{thm:attention}
-For $n\ge d^2$, $d\ge2$, and $M\ge d^2$, every bounded deterministic
+For $n\ge2$, $d\ge2$, and $M\ge d^2$, every bounded deterministic
 program over $+,-,\times,\div,\exp$ in the model of
 \cref{sec:model} that computes \cref{eq:attention} on all real inputs
 has worst-case transfer complexity
@@ -141,6 +143,13 @@ has worst-case transfer complexity
 The program may recompute values, branch on sign comparisons, and use
 fast matrix multiplication. It needs only a finite worst-case
 instruction bound for each fixed $(n,d,M)$.
+
+If, on a nonempty open execution path, every exponential argument is
+a polynomial in the full scores $q_i\cdot k_j$ with input-independent
+real coefficients, then
+\[
+ \IO\ge\frac1{16}\left(nd+\frac{n^2d^2}{M}\right).
+\]
 \end{theorem}
 
 For each fixed $d$, this matches the blocking upper bound, with
@@ -195,12 +204,16 @@ gives a uniform $O(n^2d)$-work program with the same cheap prefix.
 Thus containing the coefficient field cannot, on its own, certify
 that the larger transfer cost has already been paid.
 
-Numerical recovery imposes a different requirement. If $m$
-differentiable real summaries can decode $B$ selected pair scores or
-kernels, then $B\le m^2/d^2+2m$. \Cref{app:recovery} proves this
-compression bound and the full attention lower bound under pair
-coverage. It is a conditional statement about numerical values,
-not a consequence of field containment.
+The proof of the restricted bound has two parts
+(\cref{thm:score-exp}). First, $m$ differentiable numerical summaries
+can recover at most $m+m^2/(4d^2)$ independent linear score combinations.
+Second, the linear score parts of the exponential arguments must span
+all $n(n-1)$ centred scores and satisfy the same rank bound in each
+epoch. Neither step requires the program to form an individual score.
+Arbitrary rational arithmetic, cancellation, and recomputation are
+allowed elsewhere in the program.
+Exponentials of cross-coordinate bilinear forms,
+including the Strassen leaves used above, fall outside this restriction.
 
 \paragraph{Prior work.}
 Hong and Kung's red-blue pebble game relates I/O to small-boundary
@@ -237,13 +250,15 @@ uses no numerical differentiation algorithm.
 
 \paragraph{Formalization.}
 A Lean~4 formalization accompanies this paper. It proves
-\cref{lem:independence,lem:open,lem:factor-rank,lem:pair-rank,thm:compression},
+\cref{lem:independence,lem:open,lem:factor-rank,lem:pair-rank,lem:character,thm:compression},
 the identities of \cref{lem:strassen}, and the independence and derivative
 identities behind \cref{prop:attention-field,thm:bilinear-prefix}. It also
 proves \cref{thm:history} for execution traces and derives
 \cref{eq:main-lower} for every trace whose outputs carry the Jacobian of
-attention. The passage from a program to its trace and the transfer counts
-of the constructions are not formalized.
+attention. For \cref{thm:score-exp}, it derives the bound from the
+containment of the centred kernels and the per-epoch rank condition.
+The passage from a program to its trace and the transfer counts of the
+constructions are not formalized.
 
 \section{The machine and its open execution paths}
 \label{sec:model}
@@ -447,20 +462,20 @@ may not be charged for every derivative of a cached function.
 \label{sec:attention}
 \begin{lemma}[Exponentials of polynomials]
 \label{lem:independence}
-Let $p_1,\ldots,p_s\in\R[x]$. Suppose every nonzero integer linear
-combination of them is nonconstant. Then $e^{p_1},\ldots,e^{p_s}$ are
-algebraically independent over $\R(x)$ on every nonempty open set.
+Exponentials of polynomials with nonconstant pairwise differences
+are linearly independent over $\R(x)$ on every nonempty open set.
+In particular, if every nonzero integer linear combination of
+$p_1,\ldots,p_s\in\R[x]$ is nonconstant, then
+$e^{p_1},\ldots,e^{p_s}$ are algebraically independent over $\R(x)$.
 \end{lemma}
 \begin{proof}
-Clear denominators in a putative polynomial relation among the
-exponentials and collect monomials to obtain
+Clear denominators in a putative linear relation to obtain
 \begin{equation}
  \sum_{a\in S} r_a(x)e^{P_a(x)}=0,
- \qquad P_a=\sum_{j=1}^s a_jp_j,
  \label{eq:exponential-relation}
 \end{equation}
-where $S$ is a finite set of distinct nonnegative integer vectors and
-each $r_a$ is a nonzero polynomial. The analytic identity extends from
+where $S$ is finite, each $r_a$ is a nonzero polynomial, and the
+$P_a$ have nonconstant pairwise differences. The analytic identity extends from
 an open set to all of $\R^p$. For a generic vector $z$, restriction to
 $x=uz$ keeps every $r_a(uz)$ nonzero as a polynomial in $u$ and makes
 every difference $P_a(uz)-P_b(uz)$ nonconstant. Such $z$ exists: each
@@ -473,6 +488,11 @@ largest exponential. Each remaining term is a polynomial times
 $e^{-q(u)}$, where $q(u)\to+\infty$ is a nonconstant polynomial. These
 terms tend to zero faster than every inverse power of $u$. The
 remaining coefficient is a nonzero polynomial and cannot do so.
+
+For the second assertion, collect monomials in a polynomial relation
+among the $e^{p_j}$. Their exponents are $\sum_j a_jp_j$ for distinct
+nonnegative integer vectors $a$. The differences are nonconstant by
+hypothesis, so the linear independence just proved applies.
 \end{proof}
 
 \begin{proposition}[The coefficient field]
@@ -500,7 +520,7 @@ and all entries of $DY$ belong to it. Independence gives its
 transcendence degree.
 \end{proof}
 
-\begin{proof}[Proof of \cref{thm:attention}]
+\begin{proof}[Proof of the unconditional bound in \cref{thm:attention}]
 Choose an open execution path using \cref{lem:open}. The function
 computed there is still attention, so \cref{thm:history,prop:attention-field}
 give
@@ -514,6 +534,171 @@ $I\ge n^2/(16M)$. Combining this with $I\ge nd$ yields
 so the output stores alone suffice. The worst-case cost is at least
 the cost of this path.
 \end{proof}
+
+\section{Numerical score information and a restricted optimality theorem}
+\label{app:recovery}
+A vector of summaries \emph{numerically recovers} a target if a
+continuously differentiable decoder obtains the target from those
+values alone, on a neighbourhood of their image. The decoder may use
+input-independent constants, but receives no other input functions.
+We extend the selected-entry compression principle of
+\cite[Lemma~4.6]{sahaye2024} to arbitrary real linear score mixtures.
+For a real coefficient matrix $C$, write
+\[
+ p_C(Q,K)=\sum_{ij}C_{ij}(q_i\cdot k_j).
+\]
+Its mixed $Q,K$ Hessian is $C\otimes I_d$: each coefficient appears
+in all $d$ matching coordinate positions. These repeated copies
+provide the dimension factor in the next argument.
+
+\begin{lemma}[Rank of linear score information]
+\label{lem:pair-rank}
+Let $C_1,\ldots,C_B$ be linearly independent real coefficient matrices.
+If $\rho$ is the generic Jacobian rank of
+$(p_{C_1},\ldots,p_{C_B})$, then
+\begin{equation}
+ B\le\rho+\frac{\rho^2}{4d^2}.
+ \label{eq:pair-rank}
+\end{equation}
+Here the generic rank is the maximum rank, attained on an open dense set.
+\end{lemma}
+\begin{proof}
+Write $F_\ell=p_{C_\ell}$. Near a point of maximum Jacobian rank,
+choose $\rho$ output coordinates $z=(F_1,\ldots,F_\rho)$ with
+independent differentials. The constant-rank theorem gives
+$F_\ell=\phi_\ell(z)$ locally for $\ell>\rho$, with smooth
+$\phi_\ell$. Evaluate all derivatives below at that point and put
+$D_\ell=C_\ell-\sum_{s=1}^\rho(\partial_s\phi_\ell)C_s$.
+These $B-\rho$ matrices are independent, as their images modulo
+$\operatorname{span}(C_1,\ldots,C_\rho)$ are independent.
+The second-derivative chain rule gives
+\[
+ H_\ell:=
+ \begin{pmatrix}0&D_\ell\otimes I_d\\
+ D_\ell^{\mathsf T}\otimes I_d&0\end{pmatrix}
+ =(Dz)^{\mathsf T}(D^2\phi_\ell)Dz.
+\]
+Let $U$ and $T$ be the sums of the column and row spaces of the
+$D_\ell$, with dimensions $u$ and $v$. The sum of the images of
+$H_\ell$ is $(U\otimes\R^d)\oplus(T\otimes\R^d)$, in the query
+and key coordinates respectively. It lies in the $\rho$-dimensional
+image of $(Dz)^{\mathsf T}$, so $d(u+v)\le\rho$.
+All $D_\ell$ lie in a matrix space of dimension $uv$. Hence
+$B-\rho\le uv\le\rho^2/(4d^2)$. If $B=\rho$, the assertion
+is immediate.
+\end{proof}
+
+\begin{theorem}[Numerical compression]
+\label{thm:compression}
+If $m$ continuously differentiable real summaries numerically recover
+affine score forms $c_\ell+p_{C_\ell}$, or their coordinate-wise
+exponentials, for $B$ linearly independent coefficient matrices
+$C_\ell$ on a nonempty open input set, then
+\begin{equation}
+ B\le m+\frac{m^2}{4d^2}.
+ \label{eq:compression}
+\end{equation}
+The summaries may depend on every input coordinate, including $V$.
+\end{theorem}
+\begin{proof}
+The chain rule bounds the decoded Jacobian rank by $m$.
+Exponentiation preserves rank because its derivative is an invertible
+diagonal matrix. The nonzero polynomial minors in
+\cref{lem:pair-rank} remain nonzero on a dense subset of the given open
+set, so that lemma applies.
+\end{proof}
+
+\begin{corollary}[The full bound under numerical span coverage]
+\label{cor:pair-cover}
+Suppose the affine score forms, or their exponentials, numerically
+recovered by the epochs of an open execution path have coefficient
+matrices whose combined span has dimension at least $n(n-1)$.
+In the parameter range of \cref{thm:attention}, the path uses
+$\Omega(nd+n^2d^2/M)$ transfers, with an absolute constant.
+\end{corollary}
+\begin{proof}
+Every value computed in an epoch is an analytic function of its at
+most $2M$ incoming values. By \cref{thm:compression}, each epoch
+recovers a coefficient space of dimension at most
+$2M+M^2/d^2\le3M^2/d^2$. The dimension of their combined span is
+at most the sum of these dimensions. Using \cref{eq:epochs} gives
+\begin{equation}
+ I\ge\frac{n(n-1)d^2}{3M}-M.
+ \label{eq:span-io}
+\end{equation}
+If $M\le nd/8$, this is at least $n^2d^2/(8M)$; otherwise
+$n^2d^2/M<8nd$. The $nd$ compulsory output stores complete the bound.
+In particular, a constant $1/16$ suffices in both cases.
+\end{proof}
+
+This condition covers all scores, all kernels, or all ratios relative
+to a fixed key. It also allows references to vary: for each query,
+the score differences along any key spanning tree are independent.
+A program computing $W_{ij}=\prod_{\ell=1}^d e^{Q_{i\ell}K_{j\ell}}$
+satisfies the condition when it completes all kernels.
+
+\begin{lemma}[Containment of an exponential]
+\label{lem:character}
+For real polynomials $p_1,\ldots,p_L,r$ with zero constant term, if
+$e^r\in\R(x)(e^{p_1},\ldots,e^{p_L})$, then $r$ is an integer
+linear combination of the $p_\ell$.
+\end{lemma}
+\begin{proof}
+Write the containment as $e^r Q(e^p)=P(e^p)$ with a nonzero denominator
+and group identical exponents on each side. Distinct zero-constant
+polynomials have nonconstant differences, so \cref{lem:independence}
+makes their exponentials linearly independent over $\R(x)$. Some
+nonzero left term must therefore have the same exponent as a right term:
+$r+\sum a_\ell p_\ell=\sum b_\ell p_\ell$, with nonnegative integers
+$a_\ell,b_\ell$.
+\end{proof}
+
+\begin{theorem}[Polynomial score arguments]
+\label{thm:score-exp}
+In the parameter range of \cref{thm:attention}, suppose an exact
+program has a nonempty open execution path on which every exponential
+argument, as a function of the original inputs, is a polynomial in
+the full scores $q_i\cdot k_j$, with input-independent real coefficients.
+Its worst-case transfer cost is at least
+\[
+ \frac1{16}\left(nd+\frac{n^2d^2}{M}\right).
+\]
+\end{theorem}
+\begin{proof}
+Subtract the constant terms from all exponential arguments on that
+path and denote the resulting polynomials by $p_1,\ldots,p_L$.
+Every computed value belongs to
+$F=F_0(e^{p_1},\ldots,e^{p_L})$: constant shifts give only real
+factors, and the other instructions are rational operations.
+This field is closed under input differentiation, since each $p_\ell$
+is a polynomial. In particular, every output derivative belongs to
+$F$. By \cref{prop:attention-field}, all $n(n-1)$ centred kernels
+$R_{ij}$ belong to $F$. \Cref{lem:character} puts their exponent
+polynomials in the integer span of the $p_\ell$. Taking the coefficient
+of $t$ after replacing $Q$ by $tQ$ shows that the linear score parts
+$L_\ell(Q,K):=[t]p_\ell(tQ,K)$ span all $n(n-1)$ centred scores.
+
+For one epoch, let $P$ be the vector of its polynomials $p_\ell$.
+Its numerical Jacobian has rank at most $2M$ on the open path, since
+the arguments are computed from at most $2M$ incoming values. Its
+polynomial minors therefore give the same rank bound everywhere.
+For $t\ne0$, the vector $t^{-1}P(tQ,K)$ has generic rank at most $2M$.
+It is polynomial in $t$ and tends to the vector of linear score parts.
+Every $(2M+1)$-minor still vanishes at $t=0$. By
+\cref{lem:pair-rank}, these parts span at most
+$2M+M^2/d^2\le3M^2/d^2$ dimensions. Summing over epochs gives
+\cref{eq:span-io}; the output-store argument following that equation
+proves the stated constant. This rank limit does not require the
+machine to recover the linear parts numerically.
+\end{proof}
+
+The restriction is semantic: an argument may simplify to a polynomial
+in the full scores. Every executed exponential gate must still satisfy
+it, even if its output later cancels. Coordinate-product and general
+bilinear exponents do not qualify merely because their sums give full
+scores. Neither
+\cref{cor:pair-cover} nor \cref{thm:score-exp} asserts that every exact
+attention program meets its hypothesis.
 
 \section{A prefix obtained from a bilinear decomposition}
 \label{sec:bilinear}
@@ -798,102 +983,6 @@ sums to $O(d^\sigma)$; storing each intermediate in slow memory gives
 at most a constant number of transfers per instruction. This
 implementation deliberately makes no claim of optimal I/O for the
 linear transforms.
-
-\section{Numerical recovery of pairs}
-\label{app:recovery}
-This appendix gives a real-word counterpart of the matrix compression
-step in \cite[Lemma~4.6]{sahaye2024}, with a hypothesis absent from
-\cref{thm:attention}. A vector of summaries numerically recovers a
-target vector when there is a continuously differentiable decoder
-from those numerical values alone, on a neighbourhood of their
-image. The decoder may use input-independent constants. It is not
-given arbitrary elements of the rational input field.
-
-\begin{lemma}[Rank of a selected dot-product family]
-\label{lem:pair-rank}
-Let $E$ be a bipartite set of $B$ selected pairs between independent
-query and key vectors in $\R^d$. If $\rho$ is the generic Jacobian
-rank of $(q_i\cdot k_j)_{(i,j)\in E}$, then
-\begin{equation}
- B\le\frac{\rho^2}{d^2}+2\rho.
- \label{eq:pair-rank}
-\end{equation}
-\end{lemma}
-\begin{proof}
-Let
-\[
- r=\sum_i\min(\deg(i),d),\qquad
- c=\sum_j\min(\deg(j),d).
-\]
-Choose the keys in generic position so that every set of at most $d$
-of them is independent; distinct Vandermonde vectors provide a
-witness. The derivatives in the query coordinates form blocks on
-disjoint output coordinates, with total rank $r$. Thus $\rho\ge r$.
-Interchanging the roles gives $\rho\ge c$. These generic inequalities
-hold simultaneously, since the witnessing nonzero minors are
-polynomials.
-
-There are at most $r/d$ query vertices and $c/d$ key vertices with
-degree at least $d$. At most $rc/d^2$ edges join two such vertices.
-Edges incident to a lower-degree query number at most $r$, and the
-remaining edges incident to a lower-degree key number at most $c$.
-Hence $B\le rc/d^2+r+c\le\rho^2/d^2+2\rho$.
-\end{proof}
-
-\begin{theorem}[Numerical compression]
-\label{thm:compression}
-Suppose $m$ continuously differentiable real summaries numerically
-recover $B$ selected entries from one of the families
-\[
- q_i\cdot k_j,\qquad e^{q_i\cdot k_j},\qquad
- e^{q_i\cdot(k_j-k_n)}\ (j<n)
-\]
-on a nonempty open input set. Then
-\begin{equation}
- B\le\frac{m^2}{d^2}+2m.
- \label{eq:compression}
-\end{equation}
-The summaries may depend on $V$ and on every input coordinate.
-\end{theorem}
-\begin{proof}
-Numerical factorisation bounds the rank of the recovered vector by
-$m$, by \cref{lem:factor-rank}. Apply \cref{lem:pair-rank} for scores.
-Coordinate-wise exponentiation multiplies its Jacobian by an
-invertible diagonal matrix, preserving rank. For the centred family,
-change variables from $K$ to $(K_1-K_n,\ldots,K_{n-1}-K_n,K_n)$.
-This is an invertible linear change, and the centred key vectors are
-independent coordinates. The selected minors are nonzero on a dense
-open subset, so the argument applies inside the stated open input
-set.
-\end{proof}
-
-\begin{corollary}[The full bound under pair coverage]
-\label{cor:pair-cover}
-In the attention parameter range, suppose the epochs of an open
-execution path numerically recover, between them, every entry of one
-full family in \cref{thm:compression}. The path has
-$\Omega(nd+n^2d^2/M)$ transfers, with an absolute constant.
-\end{corollary}
-\begin{proof}
-Every value computed during an epoch is an analytic function of its
-at most $2M$ incoming values. By \cref{thm:compression}, one epoch
-recovers at most $4M^2/d^2+4M\le8M^2/d^2$ selected pairs.
-There are at least $n(n-1)$ distinct targets in a full family.
-Together with \cref{eq:epochs}, this gives
-\[
- I\ge\frac{n(n-1)d^2}{8M}-M.
-\]
-If $M\le nd/8$, the right side is at least a constant times
-$n^2d^2/M$. Otherwise this latter term is at most $8nd$.
-The $nd$ output stores complete the bound in both cases.
-\end{proof}
-
-A program can compute $W_{ij}$ as
-$\prod_{\ell=1}^d e^{Q_{i\ell}K_{j\ell}}$, without forming the sum
-$q_i\cdot k_j$. Its completed kernels satisfy the hypothesis of
-\cref{cor:pair-cover}. This example prevents interpreting pair
-coverage as an explicit-score assumption. No coverage property is
-proved for every exact program.
 
 \section{The blocking upper bound and small parameter cases}
 \label{app:upper}
