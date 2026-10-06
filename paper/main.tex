@@ -101,7 +101,7 @@ the entire attention coefficient field after
 $O(nd^{\sigma-1}+n^2d^{\sigma-2}/M)$ transfers, where $\sigma=\log_2 7$.
 This prefix can occur in a correct $O(n^2d)$-work program, yet on a
 parameter sequence it costs $o(nd+n^2d/M)$. It computes an auxiliary
-vector, not attention. We also prove the full
+vector, not attention. We prove the
 $\Omega(nd+n^2d^2/M)$ bound when each exponential argument is a polynomial
 in the full dot-product scores, even if no individual score is formed.
 A second-derivative argument bounds the dimension of arbitrary linear
@@ -152,7 +152,7 @@ real coefficients, then
 \]
 \end{theorem}
 
-For each fixed $d$, this matches the blocking upper bound, with
+For each fixed $d$, the unconditional bound matches the blocking upper bound, with
 comparison constants depending on that dimension. Uniformly in $d$,
 the bounds remain
 \begin{equation}
@@ -163,8 +163,8 @@ the bounds remain
 \end{equation}
 where $\IO^*$ is the least worst-case cost among exact families with
 $O(n^2d)$ work. The lower bound applies more broadly, as the theorem
-states. We do not prove even the intermediate
-$\Omega(nd+n^2d/M)$ bound when $d$ grows. The term $n^2/M$ exceeds the
+states. For unrestricted programs and growing $d$, we do not prove even
+$\Omega(nd+n^2d/M)$. The term $n^2/M$ exceeds the
 compulsory $nd$ only when $n>Md$, so the lower bound is informative in
 the long-context regime.
 
@@ -205,15 +205,15 @@ Thus containing the coefficient field cannot, on its own, certify
 that the larger transfer cost has already been paid.
 
 The proof of the restricted bound has two parts
-(\cref{thm:score-exp}). First, $m$ differentiable numerical summaries
-can recover at most $m+m^2/(4d^2)$ independent linear score combinations.
-Second, the linear score parts of the exponential arguments must span
-all $n(n-1)$ centred scores and satisfy the same rank bound in each
-epoch. Neither step requires the program to form an individual score.
+(\cref{thm:score-exp}). First, linear score forms whose Jacobian has
+rank at most $m$ span at most $m+m^2/(4d^2)$ dimensions
+(\cref{lem:pair-rank}). Second, the linear score parts of the exponential
+arguments must span all $n(n-1)$ scores $q_i\cdot(k_j-k_n)$ and satisfy
+the same rank bound in each epoch. Neither step requires the program to form an individual score.
 Arbitrary rational arithmetic, cancellation, and recomputation are
 allowed elsewhere in the program.
 Exponentials of cross-coordinate bilinear forms,
-including the Strassen leaves used above, fall outside this restriction.
+including the Strassen products used above, fall outside this restriction.
 
 \paragraph{Prior work.}
 Hong and Kung's red-blue pebble game relates I/O to small-boundary
@@ -254,11 +254,11 @@ A Lean~4 formalization accompanies this paper. It proves
 the identities of \cref{lem:strassen}, and the independence and derivative
 identities behind \cref{prop:attention-field,thm:bilinear-prefix}. It also
 proves \cref{thm:history} for execution traces and derives
-\cref{eq:main-lower} for every trace whose outputs carry the Jacobian of
-attention. For \cref{thm:score-exp}, it derives the bound from the
+\cref{eq:main-lower} when a trace's outputs carry the Jacobian of
+attention. It derives the bound of \cref{thm:score-exp} from the
 containment of the centred kernels and the per-epoch rank condition.
-The passage from a program to its trace and the transfer counts of the
-constructions are not formalized.
+The passage from a program to a trace and the transfer counts are not
+formalized.
 
 \section{The machine and its open execution paths}
 \label{sec:model}
@@ -541,8 +541,9 @@ A vector of summaries \emph{numerically recovers} a target if a
 continuously differentiable decoder obtains the target from those
 values alone, on a neighbourhood of their image. The decoder may use
 input-independent constants, but receives no other input functions.
-We extend the selected-entry compression principle of
-\cite[Lemma~4.6]{sahaye2024} to arbitrary real linear score mixtures.
+We adapt the finite-field compression bound of
+\cite[Lemma~4.6]{sahaye2024} to differentiable real summaries and
+arbitrary linear score mixtures.
 For a real coefficient matrix $C$, write
 \[
  p_C(Q,K)=\sum_{ij}C_{ij}(q_i\cdot k_j).
@@ -578,9 +579,9 @@ The second-derivative chain rule gives
  D_\ell^{\mathsf T}\otimes I_d&0\end{pmatrix}
  =(Dz)^{\mathsf T}(D^2\phi_\ell)Dz.
 \]
-Let $U$ and $T$ be the sums of the column and row spaces of the
+Let $S$ and $T$ be the sums of the column and row spaces of the
 $D_\ell$, with dimensions $u$ and $v$. The sum of the images of
-$H_\ell$ is $(U\otimes\R^d)\oplus(T\otimes\R^d)$, in the query
+$H_\ell$ is $(S\otimes\R^d)\oplus(T\otimes\R^d)$, in the query
 and key coordinates respectively. It lies in the $\rho$-dimensional
 image of $(Dz)^{\mathsf T}$, so $d(u+v)\le\rho$.
 All $D_\ell$ lie in a matrix space of dimension $uv$. Hence
@@ -644,7 +645,7 @@ $e^r\in\R(x)(e^{p_1},\ldots,e^{p_L})$, then $r$ is an integer
 linear combination of the $p_\ell$.
 \end{lemma}
 \begin{proof}
-Write the containment as $e^r Q(e^p)=P(e^p)$ with a nonzero denominator
+Write the containment as $e^r h(e^p)=g(e^p)$ with a nonzero denominator
 and group identical exponents on each side. Distinct zero-constant
 polynomials have nonconstant differences, so \cref{lem:independence}
 makes their exponentials linearly independent over $\R(x)$. Some
@@ -696,7 +697,8 @@ The restriction is semantic: an argument may simplify to a polynomial
 in the full scores. Every executed exponential gate must still satisfy
 it, even if its output later cancels. Coordinate-product and general
 bilinear exponents do not qualify merely because their sums give full
-scores. Neither
+scores. The blocking schedule of \cref{app:upper} exponentiates the
+scores directly, so the restricted bound is tight uniformly in $d$. Neither
 \cref{cor:pair-cover} nor \cref{thm:score-exp} asserts that every exact
 attention program meets its hypothesis.
 

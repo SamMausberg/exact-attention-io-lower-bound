@@ -4,9 +4,10 @@ Samuel Mausberg, Independent Researcher
 
 Every bounded deterministic real-arithmetic program that computes exact softmax attention on
 `Q, K, V` in `R^{n x d}` needs `Omega(nd + n^2/M)` transfers between slow memory and an `M`-word
-cache, for `n >= d^2`, `d >= 2` and `M >= d^2`. The paper also shows that field containment alone
-cannot recover the dimension factor, and proves the full `Omega(nd + n^2 d^2/M)` bound under
-numerical pair coverage.
+cache, for `n >= 2`, `d >= 2` and `M >= d^2`. When every exponential argument is a polynomial in
+the full scores `q_i . k_j`, the bound improves to `Omega(nd + n^2 d^2/M)`, which is tight. The paper
+also bounds the dimension of linear score mixtures recoverable from numerical summaries, and shows
+that field containment alone cannot recover the dimension factor.
 
 ## Contents
 
