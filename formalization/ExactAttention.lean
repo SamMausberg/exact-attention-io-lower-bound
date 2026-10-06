@@ -6,8 +6,11 @@ import ExactAttention.AnalyticField
 import ExactAttention.History
 import ExactAttention.Main
 import ExactAttention.Factorization
+import ExactAttention.ScoreDefs
 import ExactAttention.PairRank
 import ExactAttention.Compression
+import ExactAttention.Character
+import ExactAttention.ScoreExp
 import ExactAttention.Certificate
 import ExactAttention.Strassen
 import ExactAttention.BilinearPrefix

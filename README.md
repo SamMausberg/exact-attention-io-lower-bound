@@ -41,6 +41,7 @@ The script builds the Lean project with warnings treated as errors, rejects `sor
 escape hatches, and checks that each listed theorem depends only on the standard axioms.
 `attention_io_lower_bound` is the counting part of the main theorem: for an execution trace whose
 outputs carry the Jacobian of attention, it derives `(nd + n^2/M)/32 <= I` from the formalized
-derivative-field and independence results. The passage from a program to its trace is not
-formalized.
+derivative-field and independence results. `score_exp_io_lower_bound` derives the restricted
+bound `(nd + n^2 d^2/M)/16 <= I` from the per-epoch rank condition and the containment of the
+centred kernels. The passage from a program to these hypotheses is not formalized.
 

@@ -19,7 +19,7 @@ listed theorem depends only on `propext`, `Classical.choice`, and `Quot.sound`. 
 
 | Paper (TeX label) | Lean theorems | File |
 |---|---|---|
-| Exponentials of polynomials (`lem:independence`) | `exp_poly_relation_eq_zero`, `algebraicIndependent_exp_poly` | `ExpPoly.lean` |
+| Exponentials of polynomials (`lem:independence`) | `exp_poly_linear_relation_eq_zero`, `linearIndependent_expElem`, `exp_poly_relation_eq_zero`, `algebraicIndependent_exp_poly` | `Character.lean`, `ExpPoly.lean` |
 | The coefficient field (`prop:attention-field`) | `attnOutput_isLinearMap`, `hasDerivAt_attnOutput_value`, `attnWeight_div_last`, `attnOutput_eq_ratio`, `hasDerivAt_attnRatio`, `ratioExponent_intCombNonconst`, `attnRatio_algebraicIndependent`, `attnRatio_eq_deriv_div_deriv`, `attnOutput_deriv_mem_ratioField`, `ratio_algebraicIndependent`, `ratio_eq_jacobian_div` | `CoefficientField.lean`, `Main.lean` |
 | An open execution path (`lem:open`) | `exists_open_path`, `OpenPath.Expr.analyticAt_eval` | `OpenPath.lean` |
 | Analytic functions on an open path (`sec:model`) | `isDomain_analyticRing`, `polyToAnalytic_injective`, `ratFuncToAnalytic_injective` | `AnalyticField.lean` |
@@ -31,9 +31,11 @@ listed theorem depends only on `propext`, `Classical.choice`, and `Quot.sound`. 
 | Algebraic parts of `thm:bilinear-prefix` | `bilinearPrefix_kernel_product`, `bilinearPrefix_hasDerivAt_aux`, `bilinearPrefix_leaf_recovery`, `bilinearPrefix_intCombNonconst`, `bilinearPrefix_leafExp_algebraicIndependent` | `BilinearPrefix.lean` |
 | `cor:subintermediate` | `Certificate.sigma_lt_three`, `subintermediate` | `Certificate.lean` |
 | Counting argument of `thm:certificate` | `no_certificate_charge` | `Certificate.lean` |
-| Rank of a selected dot-product family (`lem:pair-rank`) | `pairRank_card_le_degree_sums`, `pairRank_exists_dense_open`, `pairRank` | `PairRank.lean` |
-| Numerical compression (`thm:compression`) | `compression` | `Compression.lean` |
-| The full bound under pair coverage (`cor:pair-cover`) | `pairCover_epoch`, `pairCover` | `Compression.lean` |
+| Rank of linear score information (`lem:pair-rank`) | `linearScore_rank_bound` | `PairRank.lean` |
+| Numerical compression (`thm:compression`) | `compression`, `compression_finrank_span` | `Compression.lean` |
+| The full bound under numerical span coverage (`cor:pair-cover`, `eq:span-io`) | `pairCover_epoch`, `pairCover`, `spanIO`, `spanIO_bound`, `le_finrank_span_of_scores`, `le_finrank_span_of_centred` | `Compression.lean`, `PairRank.lean` |
+| Containment of an exponential (`lem:character`) | `exp_mem_adjoin_exp`, `ratioElem_eq_expElem` | `Character.lean` |
+| Polynomial score arguments (`thm:score-exp`) | `score_exp_io_lower_bound`, `centred_eq_sum_linCoeff`, `centred_mem_span_linCoeff`, `linCoeff_rank_le` | `ScoreExp.lean` |
 
 `AxiomAudit.lean` lists every theorem in the table together with the lemmas they rest on.
 
@@ -62,14 +64,29 @@ listed theorem depends only on `propext`, `Classical.choice`, and `Quot.sound`. 
   the prefix facts from `thm:bilinear-prefix` (transfer count, epoch count, containment) enter as
   hypotheses. The conclusion is the nonexistence of charges with the stated properties on these
   prefix histories. The attention computation that follows each prefix is not modelled.
-- **`thm:compression`.** Numerical recovery means a C¹ decoder on an open neighbourhood of the
-  image of the summaries. The centred family allows any reference key.
+- **`thm:compression` and `cor:pair-cover`.** Numerical recovery means a C¹ decoder on an open
+  neighbourhood of the image of the summaries. The inputs are `(Q, K)` together with an arbitrary
+  real normed space for `V` and any other coordinates. An epoch is modelled by `2M` continuously
+  differentiable summaries of the inputs, and recovers either affine score forms or all of their
+  exponentials. An epoch that recovers a mixture reduces to the affine case by taking logarithms
+  of the exponential coordinates; that case is not stated separately. The epoch count `e ≤ I/M + 1` and the `nd` output stores are hypotheses.
+- **`lem:pair-rank`** is stated as a bound under the hypothesis that the Jacobian rank is at most
+  `ρ` on a nonempty open set, which covers the generic rank. The proof goes through a point of
+  maximal rank and a first-order perturbation argument.
+- **`thm:score-exp`.** `score_exp_io_lower_bound` takes the exponential arguments of each epoch
+  as polynomials in the scores with zero constant term. Its hypotheses are the facts the paper
+  derives from the program: the Jacobian of each epoch's arguments has rank at most `2M` on the
+  open path, and every centred ratio `R_ij` lies in `ℝ(x)` adjoined with the exponentials of all
+  epochs. Together with the epoch count and the output stores, they give
+  `(nd + n²d²/M)/16 ≤ I`.
 
 ## Not formalized
 
 - The passage from a program to a trace. In `attention_io_lower_bound` the trace, the bounds
   `a_t, b_t ≤ 2M` and the `nd` output stores are hypotheses. `lem:boundary` is proved for
   straight-line expressions in which same-epoch reloads are already substituted.
+- The passage from a program to the hypotheses of `score_exp_io_lower_bound`: the per-epoch rank
+  bound, and the containment of every computed value in `F₀(e^{p_1}, …, e^{p_L})`.
 - The field equalities `F₀(DY) = 𝒯` (`eq:attention-field`) and `F₀(Dg) = F₀(E_abr)`
   (`eq:aux-field`) as equalities of subfields, and the values `τ₁(Y) = n(n-1)` and `τ₁(g) = B²R`.
   For `Y`, both inclusions are proved as identities between functions. For `g`, the leaf
@@ -80,5 +97,5 @@ listed theorem depends only on `propext`, `Classical.choice`, and `Quot.sound`. 
   the leaf exponentials is stated in the variables `Q, K`.
 - The instruction and transfer bounds of `lem:strassen`, and the identification of the
   digit-product forms with the recursion on `2 × 2` blocks. The identities do not depend on it.
-- The example `H_L` after `thm:history` and the product-of-exponentials example after
-  `cor:pair-cover`.
+- The example `H_L` after `thm:history`, and the spanning-tree and product-of-exponentials
+  examples after `cor:pair-cover`.

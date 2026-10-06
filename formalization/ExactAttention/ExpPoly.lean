@@ -3,7 +3,8 @@ import ExactAttention.Defs
 /-!
 # Exponentials of polynomials
 
-This file proves `lem:independence`. Let `p₁, …, pₛ` be real polynomials in finitely many
+This file proves the second assertion of `lem:independence`; the first is in
+`Character.lean`. Let `p₁, …, pₛ` be real polynomials in finitely many
 variables such that every nonzero integer combination of them is nonconstant. Then no nonzero
 polynomial in `e^{p₁}, …, e^{pₛ}` whose coefficients are polynomials in the variables vanishes on
 a nonempty open set.

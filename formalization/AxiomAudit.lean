@@ -6,6 +6,11 @@ import ExactAttention
 #print axioms ExactAttention.ExpPoly.coeff_eq_zero_of_eventually_sum_mul_exp  -- lem:independence
 #print axioms ExactAttention.exp_poly_relation_eq_zero  -- lem:independence
 #print axioms ExactAttention.algebraicIndependent_exp_poly  -- lem:independence
+-- Character.lean
+#print axioms ExactAttention.exp_poly_linear_relation_eq_zero  -- lem:independence
+#print axioms ExactAttention.linearIndependent_expElem  -- lem:independence
+#print axioms ExactAttention.ratioElem_eq_expElem  -- lem:character
+#print axioms ExactAttention.exp_mem_adjoin_exp  -- lem:character
 -- CoefficientField.lean
 #print axioms ExactAttention.attnOutput_isLinearMap  -- prop:attention-field
 #print axioms ExactAttention.hasDerivAt_attnOutput_value  -- prop:attention-field
@@ -36,6 +41,26 @@ import ExactAttention
 #print axioms ExactAttention.ratio_algebraicIndependent  -- prop:attention-field
 #print axioms ExactAttention.ratio_eq_jacobian_div  -- prop:attention-field
 #print axioms ExactAttention.attention_io_lower_bound  -- thm:attention
+-- Factorization.lean
+#print axioms ExactAttention.finrank_range_fderiv_le_of_eqOn_comp  -- lem:factor-rank
+#print axioms ExactAttention.le_of_eqOn_comp_id  -- lem:factor-rank
+-- PairRank.lean
+#print axioms ExactAttention.linearScore_rank_bound  -- lem:pair-rank
+#print axioms ExactAttention.spanIO  -- eq:span-io
+#print axioms ExactAttention.spanIO_bound  -- cor:pair-cover
+-- Compression.lean
+#print axioms ExactAttention.compression  -- thm:compression
+#print axioms ExactAttention.compression_finrank_span  -- thm:compression
+#print axioms ExactAttention.pairCover_epoch  -- cor:pair-cover
+#print axioms ExactAttention.pairCover  -- cor:pair-cover
+#print axioms ExactAttention.le_finrank_span_of_centred  -- cor:pair-cover
+#print axioms ExactAttention.le_finrank_span_of_scores  -- cor:pair-cover
+-- ScoreExp.lean
+#print axioms ExactAttention.linCoeff_rank_le  -- thm:score-exp
+#print axioms ExactAttention.centred_eq_sum_linCoeff  -- thm:score-exp
+#print axioms ExactAttention.centred_mem_span_linCoeff  -- thm:score-exp
+#print axioms ExactAttention.ScoreExp.count_arith  -- cor:pair-cover
+#print axioms ExactAttention.score_exp_io_lower_bound  -- thm:score-exp
 -- Strassen.lean
 #print axioms ExactAttention.Strassen.products_eq  -- eq:strassen-base
 #print axioms ExactAttention.strassen_mul  -- eq:strassen-base
@@ -61,16 +86,4 @@ import ExactAttention
 -- Certificate.lean
 #print axioms ExactAttention.subintermediate  -- cor:subintermediate
 #print axioms ExactAttention.no_certificate_charge  -- thm:certificate
-#print axioms ExactAttention.Certificate.sigma_lt_three  -- cor:subintermediate
--- Factorization.lean
-#print axioms ExactAttention.finrank_range_fderiv_le_of_eqOn_comp  -- lem:factor-rank
-#print axioms ExactAttention.le_of_eqOn_comp_id  -- lem:factor-rank
--- PairRank.lean
-#print axioms ExactAttention.pairRank_card_le_degree_sums  -- lem:pair-rank
-#print axioms ExactAttention.pairRank_card_le_of_degree_sums_le  -- lem:pair-rank
-#print axioms ExactAttention.pairRank_exists_dense_open  -- lem:pair-rank
-#print axioms ExactAttention.pairRank  -- lem:pair-rank
--- Compression.lean
-#print axioms ExactAttention.compression  -- thm:compression
-#print axioms ExactAttention.pairCover_epoch  -- cor:pair-cover
-#print axioms ExactAttention.pairCover  -- cor:pair-cover
+#print axioms ExactAttention.Certificate.sigma_lt_three

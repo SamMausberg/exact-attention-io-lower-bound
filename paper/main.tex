@@ -250,15 +250,16 @@ uses no numerical differentiation algorithm.
 
 \paragraph{Formalization.}
 A Lean~4 formalization accompanies this paper. It proves
-\cref{lem:independence,lem:open,lem:factor-rank,lem:pair-rank,lem:character,thm:compression},
+\cref{lem:independence,lem:open,lem:factor-rank,lem:pair-rank,lem:character,thm:compression,cor:pair-cover},
 the identities of \cref{lem:strassen}, and the independence and derivative
 identities behind \cref{prop:attention-field,thm:bilinear-prefix}. It also
 proves \cref{thm:history} for execution traces and derives
 \cref{eq:main-lower} when a trace's outputs carry the Jacobian of
 attention. It derives the bound of \cref{thm:score-exp} from the
 containment of the centred kernels and the per-epoch rank condition.
-The passage from a program to a trace and the transfer counts are not
-formalized.
+The epoch count in \cref{eq:epochs} and the output stores enter as
+hypotheses. The passage from a program to a trace and the transfer counts
+are not formalized.
 
 \section{The machine and its open execution paths}
 \label{sec:model}

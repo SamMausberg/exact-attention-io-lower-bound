@@ -2,8 +2,8 @@
   "status": "passed",
   "forbidden_tokens": [],
   "build_returncode": 0,
-  "audited_theorems": 60,
-  "listed_theorems": 60,
+  "audited_theorems": 71,
+  "listed_theorems": 71,
   "axioms": {
     "ExactAttention.ExpPoly.coeff_eq_zero_of_eventually_sum_mul_exp": [
       "Classical.choice",
@@ -16,6 +16,26 @@
       "propext"
     ],
     "ExactAttention.algebraicIndependent_exp_poly": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.exp_poly_linear_relation_eq_zero": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.linearIndependent_expElem": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ratioElem_eq_expElem": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.exp_mem_adjoin_exp": [
       "Classical.choice",
       "Quot.sound",
       "propext"
@@ -145,6 +165,86 @@
       "Quot.sound",
       "propext"
     ],
+    "ExactAttention.finrank_range_fderiv_le_of_eqOn_comp": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.le_of_eqOn_comp_id": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.linearScore_rank_bound": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.spanIO": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.spanIO_bound": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.compression": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.compression_finrank_span": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairCover_epoch": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairCover": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.le_finrank_span_of_centred": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.le_finrank_span_of_scores": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.linCoeff_rank_le": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.centred_eq_sum_linCoeff": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.centred_mem_span_linCoeff": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ScoreExp.count_arith": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.score_exp_io_lower_bound": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
     "ExactAttention.Strassen.products_eq": [
       "Classical.choice",
       "Quot.sound",
@@ -256,51 +356,6 @@
       "propext"
     ],
     "ExactAttention.Certificate.sigma_lt_three": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.finrank_range_fderiv_le_of_eqOn_comp": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.le_of_eqOn_comp_id": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairRank_card_le_degree_sums": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairRank_card_le_of_degree_sums_le": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairRank_exists_dense_open": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairRank": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.compression": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairCover_epoch": [
-      "Classical.choice",
-      "Quot.sound",
-      "propext"
-    ],
-    "ExactAttention.pairCover": [
       "Classical.choice",
       "Quot.sound",
       "propext"
