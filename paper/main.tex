@@ -1,0 +1,924 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype,graphicx,aliascnt,flafter}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{An I/O lower bound for exact attention}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{1.5em}
+\allowdisplaybreaks[1]
+\widowpenalty=10000
+\clubpenalty=10000
+\newtheorem{theorem}{Theorem}[section]
+\newaliascnt{lemma}{theorem}
+\newtheorem{lemma}[lemma]{Lemma}
+\aliascntresetthe{lemma}
+\newaliascnt{proposition}{theorem}
+\newtheorem{proposition}[proposition]{Proposition}
+\aliascntresetthe{proposition}
+\newaliascnt{corollary}{theorem}
+\newtheorem{corollary}[corollary]{Corollary}
+\aliascntresetthe{corollary}
+\theoremstyle{definition}
+\newaliascnt{definition}{theorem}
+\newtheorem{definition}[definition]{Definition}
+\aliascntresetthe{definition}
+\theoremstyle{remark}
+\newaliascnt{remark}{theorem}
+\newtheorem{remark}[remark]{Remark}
+\aliascntresetthe{remark}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{definition}{Definition}{Definitions}
+\crefname{remark}{Remark}{Remarks}
+\crefname{section}{Section}{Sections}
+\crefname{appendix}{Appendix}{Appendices}
+\newcommand{\R}{\mathbb R}
+\newcommand{\F}{\mathbb F}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\trdeg}{\operatorname{trdeg}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\IO}{\operatorname{IO}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\dd}{\mathrm d}
+\hypersetup{pdftitle={An I/O Lower Bound for Exact Attention},pdfauthor={Samuel Mausberg},pdfsubject={Exact attention in an analytic real-arithmetic memory model}}
+\title{An I/O Lower Bound for Exact Attention}
+\author{Samuel Mausberg\\Independent Researcher}
+\date{}
+
+% Keep all prose, including captions and references, at the 11-point body size.
+\crefname{equation}{equation}{equations}
+\Crefname{equation}{Equation}{Equations}
+\crefname{figure}{Figure}{Figures}
+\Crefname{figure}{Figure}{Figures}
+\setlength{\textfloatsep}{16pt plus 2pt minus 2pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+\begin{document}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{0.3in}
+\begin{center}
+{\LARGE An I/O Lower Bound for Exact Attention\par}
+\vspace{0.25in}
+{\large Samuel Mausberg\par}
+\vspace{0.05in}
+Independent Researcher
+\end{center}
+\vspace{0.35in}
+\begin{center}Abstract\end{center}
+Every bounded deterministic real-arithmetic program that computes exact
+softmax attention on $Q,K,V\in\R^{n\times d}$ requires
+$\Omega(nd+n^2/M)$ transfers between slow memory and an $M$-word cache,
+for $n\ge d^2$, $d\ge2$, and $M\ge d^2$. The allowed operations are
+$+,-,\times,\div,\exp$; recomputation and finite branching are permitted.
+No pairwise intermediate value is prescribed. The proof adjoins the
+entries of each epoch's local Jacobian to a field that retains all earlier
+such entries. An epoch contributes at most $4M^2$ generators, whereas
+the output derivatives determine $n(n-1)$ algebraically independent
+kernel ratios. The bound is tight for each fixed $d$. We also show why
+field containment does not recover the uniform dependence on $d$.
+For powers of two $d\ge8$ dividing $n$, a Strassen-based prefix reaches
+the entire attention coefficient field after
+$O(nd^{\sigma-1}+n^2d^{\sigma-2}/M)$ transfers, where $\sigma=\log_2 7$.
+This prefix can occur in a correct $O(n^2d)$-work program, yet on a
+parameter sequence it costs $o(nd+n^2d/M)$. It computes an auxiliary
+vector, not attention. A separate numerical compression theorem gives
+$\Omega(nd+n^2d^2/M)$ when the epochs recover all pair scores or kernels;
+that recovery hypothesis is not part of the unrestricted lower bound.
+\end{titlepage}
+\hypersetup{pageanchor=true}
+\setcounter{page}{1}
+
+\section{Introduction}
+For $Q,K,V\in\R^{n\times d}$, exact attention is the map
+\begin{equation}
+ W_{ij}=\exp(q_i\cdot k_j),\qquad
+ A_{ij}=\frac{W_{ij}}{\sum_{h=1}^n W_{ih}},\qquad Y=AV,
+ \label{eq:attention}
+\end{equation}
+where $q_i$ and $k_j$ are rows. The inputs begin in slow memory, the
+output must be written there, and arithmetic operates on at most $M$
+fast real words. We count scalar loads and stores.
+
+The blocking schedule underlying FlashAttention uses
+$O(nd+n^2d^2/M)$ transfers and $O(n^2d)$ arithmetic work
+\cite{dao2022}. A formula with $n^2$ pairwise scores does not require
+a program to form those scores. Products of coordinate-wise
+exponentials already avoid them, and more general rearrangements
+can combine terms before an individual kernel entry is available.
+Our lower bound makes no assumption about these intermediate values.
+
+\begin{theorem}[Exact attention]
+\label{thm:attention}
+For $n\ge d^2$, $d\ge2$, and $M\ge d^2$, every bounded deterministic
+program over $+,-,\times,\div,\exp$ in the model of
+\cref{sec:model} that computes \cref{eq:attention} on all real inputs
+has worst-case transfer complexity
+\begin{equation}
+ \IO\ge\frac1{32}\left(nd+\frac{n^2}{M}\right).
+ \label{eq:main-lower}
+\end{equation}
+The program may recompute values, branch on sign comparisons, and use
+fast matrix multiplication. It needs only a finite worst-case
+instruction bound for each fixed $(n,d,M)$.
+\end{theorem}
+
+For each fixed $d$, this matches the blocking upper bound, with
+comparison constants depending on that dimension. Uniformly in $d$,
+the bounds remain
+\begin{equation}
+ \Omega\!\left(nd+\frac{n^2}{M}\right)
+ \ \le\ \IO^*(n,d,M)\ \le\
+ O\!\left(nd+\frac{n^2d^2}{M}\right),
+ \label{eq:bracket}
+\end{equation}
+where $\IO^*$ is the least worst-case cost among exact families with
+$O(n^2d)$ work. The lower bound applies more broadly, as the theorem
+states. We do not prove even the intermediate
+$\Omega(nd+n^2d/M)$ bound when $d$ grows.
+
+The proof follows derivatives through the memory schedule. Since
+$Y$ is linear in $V$, its Jacobian contains every entry of $A$.
+The ratios $A_{ij}/A_{in}$ are $n(n-1)$ algebraically independent
+functions over the rational input field. An epoch of at most $M$
+transfers has at most $2M$ incoming and $2M$ outgoing values, so its
+local Jacobian has at most $4M^2$ entries. The chain rule puts all
+output derivatives in the field generated by these local entries
+throughout the execution. This requires $\Omega(n^2/M^2)$ epochs
+when the nontrivial term dominates. Derivatives are proof objects;
+the program never has to compute them.
+
+Using field containment as the sole completion condition does not
+recover the dimension factor. Write
+\begin{equation}
+ F_0=\R(Q,K,V),\qquad
+ R_{ij}=\exp\bigl(q_i\cdot(k_j-k_n)\bigr)\quad(j<n),\qquad
+ \cT=F_0(R_{ij}:i\in[n],\ j<n).
+ \label{eq:target}
+\end{equation}
+For powers of two $d\ge8$ dividing $n$, we construct a prefix whose
+local-Jacobian history already contains $\cT$, at a cost of
+\begin{equation}
+ O\!\left(nd^{\sigma-1}+\frac{n^2d^{\sigma-2}}{M}\right),
+ \qquad \sigma=\log_2 7.
+ \label{eq:prefix-intro}
+\end{equation}
+It uses Strassen's bilinear decomposition to compute weighted sums of
+scalar exponentials. Differentiation separates the summands in the
+function field, where integer products recover the original kernels.
+Those products are not evaluated by the prefix. At $n=d^3$ and
+$M=d^2$, its cost is $\Theta(d^{\sigma+2})=o(d^5)$, while
+$nd+n^2d/M=\Theta(d^5)$. Appending a correct attention computation
+gives a uniform $O(n^2d)$-work program with the same cheap prefix.
+Thus containing the coefficient field cannot, on its own, certify
+that the larger transfer cost has already been paid.
+
+Numerical recovery imposes a different requirement. If $m$
+differentiable real summaries can decode $B$ selected pair scores or
+kernels, then $B\le m^2/d^2+2m$. \Cref{app:recovery} proves this
+compression bound and the full attention lower bound under pair
+coverage. It is a conditional statement about numerical values,
+not a consequence of field containment.
+
+\paragraph{Prior work.}
+Hong and Kung's red-blue pebble game relates I/O to small-boundary
+partitions of a specified computation graph
+\cite[Theorem~3.1]{hongkung1981}. We partition the executed program,
+without prescribing its graph. Saha and Ye permit fast matrix
+multiplication but explicitly assume that the program computes
+$QK^{\mathsf T}$, though it need not store that matrix
+\cite[Section~4]{sahaye2024}. With $\mathbb F_q$ words and $q>n$, their
+Theorem~4.8 gives $\Omega(\min\{n^2d^2/M,n^2\})$ transfers. These
+numbers refer to arXiv:2402.07443v1. The present model instead allows
+arbitrary real words and analytic arithmetic, but no digit extraction
+or real-to-integer conversion. The blocking comparison is the upper
+bound of \cite[Theorem~2]{dao2022}; \cref{app:upper} supplies a schedule
+for the full parameter range in \cref{eq:bracket}.
+
+Abelson used derivatives to lower-bound communication between
+processors \cite{abelson1980}. The numerical factorisation argument
+in \cref{lem:factor-rank} uses this chain-rule principle. Here we
+count generators contributed by local Jacobians throughout an
+execution. The extended Baur--Strassen theorem of Saha, Xu, Ye, and Yu
+bounds differentiation in arithmetic circuits with exponentials and
+logarithms \cite[Theorem~4.4]{sahaxuyeyu2026}; that circuit-size
+statement does not by itself preserve an I/O schedule. Our argument
+uses no numerical differentiation algorithm.
+
+\section{The machine and its open execution paths}
+\label{sec:model}
+For each integer triple $(n,d,M)$, a machine has $M$ fast real registers
+and an unbounded array of slow real words. The input matrices occupy
+designated slow addresses. Output addresses are separate and initially
+unwritten. Initial register values and program constants are
+independent of the inputs. Loading or storing one scalar costs one
+transfer. Arithmetic acts only on fast registers and may overwrite an
+operand. 
+
+The scalar instructions are $+,-,\times,\div,\exp$, copies, and sign
+comparisons of register values or their differences. A division must
+have a nonzero denominator on its executed branch. Addresses use
+discrete counters and finite control. There is no instruction that
+converts an arbitrary real value to an integer, extracts a digit,
+performs a real-indexed lookup, or evaluates a function purportedly
+encoded in a real word. Code constants do not provide such operations.
+Recomputation and fast matrix multiplication are permitted.
+
+Programs are deterministic and have a finite worst-case instruction
+bound at each fixed parameter triple. All instructions, including
+comparisons and counter updates, count as work. A finite I/O claim also
+has a finite worst-case transfer bound. Thus the complete computation
+can be unrolled into a finite decision tree. The lower bounds allow
+any finite work bound and arbitrary input-independent real constants.
+Algorithmic upper bounds use $O(n^2d)$ work with a constant uniform in
+the parameters. All complexity statements are worst-case statements
+on arbitrary real inputs. The same conventions apply to a general
+finite input vector $x$ and output vector $f(x)$.
+
+\begin{lemma}[An open execution path]
+\label{lem:open}
+A bounded program defined on a nonempty open input set has one
+execution path followed on a nonempty open subset. On that subset,
+all values appearing in the path are analytic functions of the inputs,
+and the accessed addresses are fixed.
+\end{lemma}
+\begin{proof}
+Start with a connected open subset. Arithmetic preserves analyticity
+where the denominators of executed divisions are nonzero. At a sign
+test, the analytic test function either vanishes identically or is
+nonzero on some smaller open subset, on which one sign is fixed.
+Choose the corresponding branch. Counter values and addresses are
+then fixed along the path. Repeating this step reaches a leaf because
+the decision tree is finite. The resulting nonempty open set may be
+shrunk to be connected.
+\end{proof}
+
+Fix such a connected open set $U$. Analytic functions on $U$ form an
+integral domain; we work in its fraction field. The rational function
+field $\R(x_1,\ldots,x_p)$ embeds in this field because no nonzero
+polynomial vanishes on an open set. Statements about algebraic
+independence below concern functions on $U$, rather than particular
+real numbers. Poles introduced by a field identity have no implication
+for the instructions executed by the program.
+
+For an analytic vector $f(x)$, define
+\begin{equation}
+ \tau_1(f)=\trdeg_{\R(x)}\R(x)(Df).
+ \label{eq:tau}
+\end{equation}
+The right side is the transcendence degree of the field generated by
+the scalar entries of the Jacobian. It can exceed the number of input
+coordinates. Its numerical rank cannot exceed the number of inputs.
+
+\begin{lemma}[Numerical factorisation]
+\label{lem:factor-rank}
+Suppose $C:U\to\R^m$ and $D$ are continuously differentiable, with $D$
+defined on a neighbourhood of $C(U)$. If $F=D\circ C$, then
+$\rank DF(x)\le m$ on $U$. In particular, fewer than $p$ such numerical
+summaries cannot encode and decode all $p$ independent real input
+coordinates on an open set.
+\end{lemma}
+\begin{proof}
+The chain rule gives $DF(x)=DD(C(x))\,DC(x)$. Its rank is at most $m$.
+Apply this to $F(x)=x$ for the last statement.
+\end{proof}
+
+On an open execution path, this rules out lossless packing with
+numerical differentiable decoding. Field membership supplies no such
+decoder: it is an identity between functions, not an instruction for
+recovering their numerical values.
+
+\section{The derivative field of an execution}
+\label{sec:history}
+An epoch is a consecutive part of an execution with at most $M$
+transfers. Partition a path with $I$ transfers into $e$ epochs, using
+$M$ transfers per epoch except possibly the last. Arithmetic before the
+first transfer and after the last is included. A path with no transfers
+has one epoch. In all cases,
+\begin{equation}
+ e\le I/M+1.
+ \label{eq:epochs}
+\end{equation}
+
+\begin{lemma}[Boundary factorisation]
+\label{lem:boundary}
+For each epoch $t$, there are incoming values $C_t(x)\in\R^{a_t}$ and
+outgoing values $B_t(x)\in\R^{b_t}$, with $a_t,b_t\le2M$, and an
+analytic map $\Phi_t$ on a neighbourhood of a realised boundary point
+such that
+\begin{equation}
+ B_t(x)=\Phi_t(C_t(x)).
+ \label{eq:boundary}
+\end{equation}
+Every newly stored slow word and every final cache value occurs in
+$B_t$. Incoming values are initial cache values or versions of slow
+words that existed before the epoch.
+\end{lemma}
+\begin{proof}
+Trace the epoch with its addresses fixed. Its initial cache contributes
+at most $M$ arguments. For a load from a word whose current version
+predates the epoch, add its value as an external argument. There are
+at most $M$ such loads. A load that follows a same-epoch store is
+replaced by the expression for that stored version, including through
+any intervening overwrites. It introduces no external argument.
+
+Every instruction is now an expression in these arguments. Record
+all store values, at most $M$, and the final cache, at most $M$, as the
+outgoing vector. At any realised boundary point the original executed
+denominators are nonzero. They remain nonzero in a sufficiently small
+neighbourhood of that point when the incoming arguments are treated
+as independent. The resulting expressions define $\Phi_t$ there.
+Shrinking the input open set for the finitely many epochs gives the
+claimed local factorisations. They need not be unique off the realised
+set of boundary values.
+\end{proof}
+
+\begin{figure}[t]
+ \centering\input{figures/epoch.tex}
+ \caption{One epoch and its local Jacobian. The history retains the
+ entries of $\Lambda_t$ as functions, without making their numerical
+ values available to the machine. A reloaded word inherits its derivatives from earlier epochs.}
+ \label{fig:epoch}
+\end{figure}
+
+As illustrated in \cref{fig:epoch}, use the maps supplied by the
+executed expressions in \cref{lem:boundary} and set
+\begin{equation}
+ \Lambda_t(x)=D\Phi_t(C_t(x)),\qquad
+ \cH_0=F_0=\R(x),\qquad
+ \cH_t=\cH_{t-1}(\Lambda_t).
+ \label{eq:history}
+\end{equation}
+Parentheses mean adjoining all scalar entries. These are ordinary
+fields. No further differentiation is implicit in their definition.
+
+\begin{theorem}[I/O and the first-derivative field]
+\label{thm:history}
+Let a bounded analytic program compute $f(x)$ on a nonempty open set,
+using $M$ fast words and $I$ transfers on an open execution path. Then
+\begin{equation}
+ \tau_1(f)\le\sum_{t=1}^e a_tb_t\le4M^2e,
+ \qquad
+ I\ge\frac{\tau_1(f)}{4M}-M.
+ \label{eq:history-bound}
+\end{equation}
+\end{theorem}
+\begin{proof}
+The induction tracks every extant word in both memories. A later
+load therefore reuses the derivatives of a stored word rather than
+introducing a new input function.
+
+Initially, first derivatives of input words and constants are $0$ or
+$1$, hence belong to $F_0$. Suppose that every first derivative of
+every extant word after epoch $t-1$ belongs to $\cH_{t-1}$. By
+\cref{lem:boundary}, this holds for all entries of $DC_t$. Differentiating
+\cref{eq:boundary} gives
+\begin{equation}
+ DB_t=\Lambda_t\,DC_t.
+ \label{eq:chain}
+\end{equation}
+Every scalar entry on the right belongs to $\cH_t$. Newly stored words
+and final cache values occur in $B_t$; an unchanged slow word keeps
+its previous derivatives. Overwritten versions need not be kept
+as numerical words, although their previously adjoined functions
+remain in the history field. The induction follows.
+
+All output derivatives therefore belong to $\cH_e$. Adjoining $a_tb_t$
+elements increases transcendence degree by at most $a_tb_t$, regardless
+of any algebraic dependencies among them. Consequently
+\[
+ \tau_1(f)\le\trdeg_{F_0}\cH_e
+ \le\sum_{t=1}^e a_tb_t\le4M^2e.
+\]
+Substitute \cref{eq:epochs} and rearrange.
+\end{proof}
+
+A reload with no further arithmetic has an identity local map and contributes
+no new generator. A long computation inside an epoch may produce many
+exponentials, but only the entries of the epoch's boundary Jacobian
+are adjoined in \cref{eq:history}. Closure under further differentiation would give a different and
+invalid charge. For example, $H_L(a,x)=\sum_{\ell=1}^L e^{a^\ell x}$
+uses two loads, one store, and a constant-size cache. Its successive
+$x$-derivatives recover all $L$ exponentials by a Vandermonde system,
+but its first-derivative field has only two generators. Thus an epoch
+may not be charged for every derivative of a cached function.
+
+\section{The attention coefficient field}
+\label{sec:attention}
+\begin{lemma}[Exponentials of polynomials]
+\label{lem:independence}
+Let $p_1,\ldots,p_s\in\R[x]$. Suppose every nonzero integer linear
+combination of them is nonconstant. Then $e^{p_1},\ldots,e^{p_s}$ are
+algebraically independent over $\R(x)$ on every nonempty open set.
+\end{lemma}
+\begin{proof}
+Clear denominators in a putative polynomial relation among the
+exponentials and collect monomials to obtain
+\begin{equation}
+ \sum_{a\in S} r_a(x)e^{P_a(x)}=0,
+ \qquad P_a=\sum_{j=1}^s a_jp_j,
+ \label{eq:exponential-relation}
+\end{equation}
+where $S$ is a finite set of distinct nonnegative integer vectors and
+each $r_a$ is a nonzero polynomial. The analytic identity extends from
+an open set to all of $\R^p$. For a generic vector $z$, restriction to
+$x=uz$ keeps every $r_a(uz)$ nonzero as a polynomial in $u$ and makes
+every difference $P_a(uz)-P_b(uz)$ nonconstant. Such $z$ exists: each
+excluded condition forces a nonzero homogeneous component of one of
+finitely many polynomials to vanish.
+
+For sufficiently large positive $u$, the distinct exponent polynomials
+are strictly ordered. Divide \cref{eq:exponential-relation} by the
+largest exponential. Each remaining term is a polynomial times
+$e^{-q(u)}$, where $q(u)\to+\infty$ is a nonconstant polynomial. These
+terms tend to zero faster than every inverse power of $u$. The
+remaining coefficient is a nonzero polynomial and cannot do so.
+\end{proof}
+
+\begin{proposition}[The coefficient field]
+\label{prop:attention-field}
+For $n\ge2$ and $d\ge1$, the functions $R_{ij}$ of
+\cref{eq:target} are algebraically independent over $F_0$, and
+\begin{equation}
+ F_0(DY)=\cT,\qquad \tau_1(Y)=n(n-1).
+ \label{eq:attention-field}
+\end{equation}
+\end{proposition}
+\begin{proof}
+The polynomial $q_i\cdot(k_j-k_n)$ has coefficient one on
+$Q_{i1}K_{j1}$ for $j<n$. No other polynomial in this family contains
+that monomial. Their nonzero integer combinations are therefore
+nonconstant, and \cref{lem:independence} applies.
+
+Linearity in $V$ gives $\partial Y_{i1}/\partial V_{j1}=A_{ij}$.
+Thus $R_{ij}=A_{ij}/A_{in}$ belongs to $F_0(DY)$, proving one
+containment. Conversely, set $R_{in}=1$. The entries of $Y$ are rational
+functions of $R$ and $V$, with denominator $1+\sum_{j<n}R_{ij}$.
+Every input derivative of $R_{ij}$ is a polynomial times $R_{ij}$.
+The field $\cT$ is consequently closed under input differentiation,
+and all entries of $DY$ belong to it. Independence gives its
+transcendence degree.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:attention}]
+Choose an open execution path using \cref{lem:open}. The function
+computed there is still attention, so \cref{thm:history,prop:attention-field}
+give
+\[
+ I\ge\frac{n(n-1)}{4M}-M.
+\]
+There are also $nd$ compulsory output stores on this path. If
+$M\le n/4$, then $n(n-1)\ge n^2/2$ and
+$I\ge n^2/(16M)$. Combining this with $I\ge nd$ yields
+\cref{eq:main-lower}. If $M>n/4$, then $n^2/M<4n\le2nd$,
+so the output stores alone suffice. The worst-case cost is at least
+the cost of this path.
+\end{proof}
+
+\section{A prefix obtained from a bilinear decomposition}
+\label{sec:bilinear}
+We construct a cheap prefix whose derivative field contains $\cT$.
+The numerical output consists of weighted sums of scalar exponentials.
+The kernels are recovered only as identities in a field.
+
+We use the following recursive form of Strassen's identity
+\cite{strassen1969}. The proof also establishes the independence
+property needed for the derivative field.
+
+\begin{lemma}[The seven-product decomposition]
+\label{lem:strassen}
+Let $d=2^k$ and $R=7^k=d^\sigma$, where $\sigma=\log_2 7$.
+There are nonzero integer linear forms $\ell_r,m_r$ on $d\times d$
+matrices and integers $c_{\alpha\beta r}$ such that
+\begin{equation}
+ (UZ^{\mathsf T})_{\alpha\beta}
+ =\sum_{r=1}^R c_{\alpha\beta r}\ell_r(U)m_r(Z).
+ \label{eq:bilinear}
+\end{equation}
+All $R$ forms on either input can be evaluated in $O(R)$ scalar
+instructions, with an $O(R)$-transfer implementation using a constant
+number of fast words. The $R$ bilinear polynomials
+$\ell_r(U)m_r(Z)$ are linearly independent. The forms
+$\ell_r$ span the dual of the $d^2$-dimensional input space.
+\end{lemma}
+\begin{proof}
+The seven-product identity \cite{strassen1969}, written in
+\cref{app:strassen}, gives \cref{eq:bilinear} by recursion. Its
+coefficients are integers. Evaluating all leaf forms satisfies
+$L(d)\le7L(d/2)+O(d^2)$, with $L(1)=O(1)$, hence $L(d)=O(R)$.
+Store every intermediate in slow memory and use a constant number of
+registers for each scalar instruction to obtain the stated transfer
+bound.
+
+At $d=2$, the coefficient vectors of the seven bilinear polynomials
+have a $7\times7$ minor of determinant one; the minor is displayed in
+\cref{app:strassen}. Recursive leaf coefficient vectors are tensor
+products of these seven vectors, up to a permutation of monomials.
+They are linearly independent at every depth. Finally, if all
+$\ell_r(U)$ vanish, then \cref{eq:bilinear} gives $UZ^{\mathsf T}=0$
+for every $Z$. Taking $Z$ to be the identity gives $U=0$. Thus the
+forms $\ell_r$ span the full dual space.
+\end{proof}
+
+Assume $d\mid n$ and write $B=n/d$. Partition the rows of $Q$ and $K$
+into $B$ blocks of $d$ rows, denoted $Q^{(a)}$ and $K^{(b)}$.
+For $a,b\in[B]$ and $r\in[R]$, define
+\begin{equation}
+ u_{ar}=\ell_r(Q^{(a)}),\qquad
+ z_{br}=m_r(K^{(b)}),\qquad
+ E_{abr}=e^{u_{ar}z_{br}},\qquad
+ t_b=V_{(b-1)d+1,1}.
+ \label{eq:forms}
+\end{equation}
+The auxiliary vector has $BR$ entries:
+\begin{equation}
+ g_{ar}=\sum_{b=1}^B E_{abr}t_b.
+ \label{eq:aux-vector}
+\end{equation}
+All original input coordinates remain free. In particular, a scalar
+form $u_{ar}$ can depend on many entries of its full matrix block.
+
+\begin{theorem}[Cost and derivative field of the auxiliary vector]
+\label{thm:bilinear-prefix}
+Let $d\ge8$ be a power of two, $d\mid n$, $n\ge d^2$, and $M\ge d^2$.
+Computing the vector $g$ of \cref{eq:aux-vector}, with its $BR$ outputs
+in designated slow addresses, has I/O complexity
+\begin{equation}
+ \Theta\!\left(BR+\frac{B^2R}{M}\right)
+ =\Theta\!\left(nd^{\sigma-1}
+              +\frac{n^2d^{\sigma-2}}M\right).
+ \label{eq:aux-io}
+\end{equation}
+The upper bound has $O(BR+B^2R)\subseteq O(n^2d)$ work. Moreover,
+\begin{equation}
+ F_0(Dg)=F_0(E_{abr}:a,b\in[B],r\in[R])\supseteq\cT,
+ \qquad \tau_1(g)=B^2R.
+ \label{eq:aux-field}
+\end{equation}
+For any epoch partition of this prefix, its history at completion
+contains $\cT$.
+\end{theorem}
+\begin{proof}
+Evaluate and store all $u_{ar}$ and $z_{br}$ using
+\cref{lem:strassen}. This costs $O(BR)$ work and transfers.
+For a fixed $r$, divide the query and key indices into tiles of size
+at most
+\[
+ s=\min\{B,\lfloor M/8\rfloor\}.
+\]
+On a tile $I\times J$, load the current accumulators $a_i$, query
+scalars $u_{ir}$, key scalars $z_{jr}$, and markers $t_j$, and compute
+\begin{equation}
+ b_i=a_i+\sum_{j\in J}e^{u_{ir}z_{jr}}t_j\quad(i\in I).
+ \label{eq:tile}
+\end{equation}
+At most $4s+4\le M$ fast words suffice. The tile uses
+$3|I|+2|J|\le5s\le M$ transfers, including the accumulator stores.
+Initialising the $B$ accumulators and visiting all tiles costs at most
+\[
+ B+5B\lceil B/s\rceil=O(B+B^2/M)
+\]
+transfers for this $r$. The total over $r$ is the upper bound in
+\cref{eq:aux-io}. There are $B^2R$ scalar exponential terms and
+$O(BR)$ preprocessing instructions. Since $R=d^\sigma\le d^3$,
+both are within a uniform $O(n^2d)$ budget.
+
+Fix $r$ and choose a key coordinate $\kappa_r\in[d]\times[d]$ whose
+coefficient $\beta_r$ in $m_r$ is nonzero. The markers are independent
+of $Q,K$. Therefore
+\begin{equation}
+ \frac{\partial g_{ar}}{\partial K^{(b)}_{\kappa_r}}
+   =u_{ar}\beta_r E_{abr}t_b,
+ \qquad
+ E_{abr}=\frac{\partial g_{ar}/\partial K^{(b)}_{\kappa_r}}
+                  {u_{ar}\beta_rt_b}
+ \quad\text{in the function field}.
+ \label{eq:extract-leaf}
+\end{equation}
+The denominator is a nonzero rational function, although it can
+vanish on particular inputs. The prefix performs no division by it.
+Every derivative of $g$ is rational in the $E_{abr}$ and the inputs,
+which proves the field equality in \cref{eq:aux-field}.
+
+For a row $i=(a-1)d+\alpha$ and $j=(b-1)d+\beta$,
+\cref{eq:bilinear} gives
+\begin{equation}
+ W_{ij}=\prod_{r=1}^R E_{abr}^{c_{\alpha\beta r}}.
+ \label{eq:kernel-product}
+\end{equation}
+All powers are integers, so \cref{eq:kernel-product} belongs to the
+ordinary field $F_0(E_{abr}:a,b\in[B],r\in[R])$. Taking $W_{ij}/W_{in}$ gives $\cT\subseteq
+F_0(E_{abr}:a,b\in[B],r\in[R])$.
+
+For a fixed pair of blocks $(a,b)$, the exponent polynomials
+$u_{ar}z_{br}$ are linearly independent by \cref{lem:strassen}.
+Different block pairs use disjoint sets of query--key monomials.
+Thus all $B^2R$ exponent polynomials are linearly independent and
+homogeneous of degree two. \Cref{lem:independence} proves algebraic
+independence of the corresponding exponentials. Hence
+$\tau_1(g)=B^2R$.
+
+The lower bound now follows from \cref{thm:history} and the $BR$
+compulsory output stores. If $M\le B\sqrt R/4$, then
+$I\ge B^2R/(4M)-M\ge3B^2R/(16M)$. If $M>B\sqrt R/4$, then
+$B^2R/M<4B\sqrt R\le4BR$, which is controlled by the output stores.
+Combining the bounds proves \cref{eq:aux-io}. Finally, the induction
+in \cref{thm:history} puts $F_0(Dg)$ in the history at the end of any
+partition of this executed prefix.
+\end{proof}
+
+\begin{corollary}
+\label{cor:subintermediate}
+Along $d=2^k\ge8$, $n=d^3$, and $M=d^2$, the prefix of
+\cref{thm:bilinear-prefix} has $O(n^2d)$ work and
+$\Theta(d^{\sigma+2})=o(nd+n^2d/M)$ transfers, while its history
+contains $\cT$.
+\end{corollary}
+\begin{proof}
+Here $B=d^2$, $R=d^\sigma$, and both terms of \cref{eq:aux-io}
+are $d^{\sigma+2}$. In contrast, $nd+n^2d/M=d^4+d^5$.
+Since $\sigma<3$, their ratio tends to zero.
+\end{proof}
+
+\section{What field containment cannot certify}
+\label{sec:certificates}
+The prefix of \cref{thm:bilinear-prefix} can be followed by the blocking
+attention algorithm while retaining the original inputs in slow
+memory. This gives a correct $O(n^2d)$-work program. The continuation
+may ignore the auxiliary vector, so the argument concerns a completion
+condition stated solely in terms of the history field.
+
+\begin{theorem}[Field-containment certificates]
+\label{thm:certificate}
+There are no absolute constants $c,C>0$ and charges $\Pi_t$, defined
+for every epoch history of every correct $O(n^2d)$-work attention
+program, with the following properties: $\Pi_0=0$; a prefix history
+containing $\cT$ has charge at least $c\,n(n-1)$; and every epoch
+of at most $M$ transfers satisfies
+\begin{equation}
+ \Pi_t-\Pi_{t-1}\le C\left(M+\frac{M^2}{d}\right).
+ \label{eq:putative-capacity}
+\end{equation}
+Charges may depend on the entire execution history and need not be
+monotone.
+\end{theorem}
+\begin{proof}
+Take $n=d^3$, $M=d^2$, and $d=2^k\ge8$. Run the prefix in
+\cref{thm:bilinear-prefix}, then compute attention. Pad the end of
+the prefix with fewer than $M$ transfers of constants so that it is
+an epoch boundary. On other parameter triples use the blocking
+algorithm; the resulting family has a uniform $O(n^2d)$ work bound.
+
+By \cref{cor:subintermediate}, the prefix uses $O(d^\sigma)$ epochs
+and its history contains $\cT$. Summing \cref{eq:putative-capacity}
+from zero gives
+\[
+ \Pi_t\le O(d^\sigma)(d^2+d^3)
+       =O(d^{\sigma+3})=o(d^6).
+\]
+The completion condition instead requires
+$\Pi_t\ge c\,d^3(d^3-1)=\Omega(d^6)$, a contradiction.
+The argument uses only upper bounds on increments.
+\end{proof}
+
+The same example excludes the smaller epoch capacity
+$O(M+M^2/d^2)$. More generally, field containment alone cannot
+certify a transfer cost above \cref{eq:prefix-intro} on this
+parameter sequence. The additive $nd^{\sigma-1}$ term cannot be
+dropped unless it is absorbed, for example when $n\ge Md$.
+
+This is a limit on the stated completion condition, not on all
+lower-bound methods. In particular, it does not address a charge
+that requires numerical production of the output or exploits a
+specific continuation. Nor does the prefix give an improved attention
+algorithm. The uniform gap in \cref{eq:bracket} remains.
+
+\appendix
+\crefalias{section}{appendix}
+\section{The bilinear identity and its independent factors}
+\label{app:strassen}
+For $2\times2$ matrices $U=(u_{ij})$ and $B=(b_{ij})$, use the seven
+products
+\begin{align*}
+ p_1&=(u_{11}+u_{22})(b_{11}+b_{22}),&
+ p_2&=(u_{21}+u_{22})b_{11},\\
+ p_3&=u_{11}(b_{12}-b_{22}),&
+ p_4&=u_{22}(b_{21}-b_{11}),\\
+ p_5&=(u_{11}+u_{12})b_{22},&
+ p_6&=(u_{21}-u_{11})(b_{11}+b_{12}),\\
+ p_7&=(u_{12}-u_{22})(b_{21}+b_{22}).
+\end{align*}
+Strassen's identity \cite{strassen1969} is
+\begin{equation}
+ UB=\begin{pmatrix}
+ p_1+p_4-p_5+p_7 & p_3+p_5\\
+ p_2+p_4 & p_1-p_2+p_3+p_6
+ \end{pmatrix}.
+ \label{eq:strassen-base}
+\end{equation}
+Expanding its four entries verifies the identity over the integers.
+Substitute $B=Z^{\mathsf T}$ to obtain the form used in the main text.
+Applying the same identity recursively to matrix blocks gives $7^k$
+leaf products for $d=2^k$. Each leaf is an integer linear form in $U$
+times an integer linear form in $Z$; each output is an integer linear
+combination of these products.
+
+Order the four entries of $U$ and $B$ row by row, and order their
+sixteen pairwise monomials first by the $U$ entry and then by the $B$
+entry. The coefficient matrix of $(p_1,\ldots,p_7)$ has, at zero-based
+column indices $0,1,3,6,8,9,12$, the minor
+\begin{equation}
+ \begin{pmatrix}
+ 1&0&1&0&0&0&1\\
+ 0&0&0&0&1&0&1\\
+ 0&1&-1&0&0&0&0\\
+ 0&0&0&0&0&0&-1\\
+ 0&0&1&0&0&0&0\\
+ -1&-1&0&0&1&1&0\\
+ 0&0&0&1&0&0&0
+ \end{pmatrix},
+ \qquad \det=1.
+ \label{eq:minor-seven}
+\end{equation}
+This proves independence at the base. At the next level, a leaf index
+is a pair of leaf indices; its coefficient on a query--key monomial
+is the product of the corresponding coefficients at the two levels.
+After reordering the monomial coordinates, the coefficient vectors
+are therefore the tensor products of the base vectors. Tensor
+products of independent vectors are independent: extend the base
+vectors to a basis and apply the dual basis in each tensor factor.
+Induction proves independence of the $7^k$ bilinear polynomials.
+Transposing the key matrix merely permutes the monomials.
+
+The same recursion evaluates all input linear forms with
+$L(d)\le7L(d/2)+c d^2$ instructions. No product of the two inputs is
+needed for this preprocessing. Copies of subblocks and sums or
+differences require $O(d^2)$ instructions at a node. The recurrence
+sums to $O(d^\sigma)$; storing each intermediate in slow memory gives
+at most a constant number of transfers per instruction. This
+implementation deliberately makes no claim of optimal I/O for the
+linear transforms.
+
+\section{Numerical recovery of pairs}
+\label{app:recovery}
+This appendix gives a real-word counterpart of the matrix compression
+step in \cite[Lemma~4.6]{sahaye2024}, with a hypothesis absent from
+\cref{thm:attention}. A vector of summaries numerically recovers a
+target vector when there is a continuously differentiable decoder
+from those numerical values alone, on a neighbourhood of their
+image. The decoder may use input-independent constants. It is not
+given arbitrary elements of the rational input field.
+
+\begin{lemma}[Rank of a selected dot-product family]
+\label{lem:pair-rank}
+Let $E$ be a bipartite set of $B$ selected pairs between independent
+query and key vectors in $\R^d$. If $\rho$ is the generic Jacobian
+rank of $(q_i\cdot k_j)_{(i,j)\in E}$, then
+\begin{equation}
+ B\le\frac{\rho^2}{d^2}+2\rho.
+ \label{eq:pair-rank}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Let
+\[
+ r=\sum_i\min(\deg(i),d),\qquad
+ c=\sum_j\min(\deg(j),d).
+\]
+Choose the keys in generic position so that every set of at most $d$
+of them is independent; distinct Vandermonde vectors provide a
+witness. The derivatives in the query coordinates form blocks on
+disjoint output coordinates, with total rank $r$. Thus $\rho\ge r$.
+Interchanging the roles gives $\rho\ge c$. These generic inequalities
+hold simultaneously, since the witnessing nonzero minors are
+polynomials.
+
+There are at most $r/d$ query vertices and $c/d$ key vertices with
+degree at least $d$. At most $rc/d^2$ edges join two such vertices.
+Edges incident to a lower-degree query number at most $r$, and the
+remaining edges incident to a lower-degree key number at most $c$.
+Hence $B\le rc/d^2+r+c\le\rho^2/d^2+2\rho$.
+\end{proof}
+
+\begin{theorem}[Numerical compression]
+\label{thm:compression}
+Suppose $m$ continuously differentiable real summaries numerically
+recover $B$ selected entries from one of the families
+\[
+ q_i\cdot k_j,\qquad e^{q_i\cdot k_j},\qquad
+ e^{q_i\cdot(k_j-k_n)}\ (j<n)
+\]
+on a nonempty open input set. Then
+\begin{equation}
+ B\le\frac{m^2}{d^2}+2m.
+ \label{eq:compression}
+\end{equation}
+The summaries may depend on $V$ and on every input coordinate.
+\end{theorem}
+\begin{proof}
+Numerical factorisation bounds the rank of the recovered vector by
+$m$, by \cref{lem:factor-rank}. Apply \cref{lem:pair-rank} for scores.
+Coordinate-wise exponentiation multiplies its Jacobian by an
+invertible diagonal matrix, preserving rank. For the centred family,
+change variables from $K$ to $(K_1-K_n,\ldots,K_{n-1}-K_n,K_n)$.
+This is an invertible linear change, and the centred key vectors are
+independent coordinates. The selected minors are nonzero on a dense
+open subset, so the argument applies inside the stated open input
+set.
+\end{proof}
+
+\begin{corollary}[The full bound under pair coverage]
+\label{cor:pair-cover}
+In the attention parameter range, suppose the epochs of an open
+execution path numerically recover, between them, every entry of one
+full family in \cref{thm:compression}. The path has
+$\Omega(nd+n^2d^2/M)$ transfers, with an absolute constant.
+\end{corollary}
+\begin{proof}
+Every value computed during an epoch is an analytic function of its
+at most $2M$ incoming values. By \cref{thm:compression}, one epoch
+recovers at most $4M^2/d^2+4M\le8M^2/d^2$ selected pairs.
+There are at least $n(n-1)$ distinct targets in a full family.
+Together with \cref{eq:epochs}, this gives
+\[
+ I\ge\frac{n(n-1)d^2}{8M}-M.
+\]
+If $M\le nd/8$, the right side is at least a constant times
+$n^2d^2/M$. Otherwise this latter term is at most $8nd$.
+The $nd$ output stores complete the bound in both cases.
+\end{proof}
+
+A program can compute $W_{ij}$ as
+$\prod_{\ell=1}^d e^{Q_{i\ell}K_{j\ell}}$, without forming the sum
+$q_i\cdot k_j$. Its completed kernels satisfy the hypothesis of
+\cref{cor:pair-cover}. This example prevents interpreting pair
+coverage as an explicit-score assumption. No coverage property is
+proved for every exact program.
+
+\section{The blocking upper bound and small parameter cases}
+\label{app:upper}
+We include the schedule only to specify the uniform comparison in
+\cref{eq:bracket}; the bound is the established attention tiling bound
+\cite{dao2022,sahaye2024}. For $M\ge16d$, choose
+\[
+ b=\min\{n,\lfloor M/(8d)\rfloor\}.
+\]
+Keep $b$ query rows, $b$ length-$d$ numerator accumulators, and $b$
+denominators in fast memory. Scan the key--value rows. For each such
+row, compute the $b$ exponential weights and update the accumulators.
+All denominators are positive. Divide the numerators and write the
+output block, then proceed to the next query block.
+
+The query block and numerators use $2bd$ words. Denominators use $b$,
+a key and value row use $2d$, and eight scratch words suffice for the
+scalar inner loops. For $d\ge2$ and $M\ge16d$,
+\[
+ 2bd+b+2d+8\le M.
+\]
+The transfers are $O(nd+\lceil n/b\rceil nd)$, hence
+$O(nd+n^2d^2/M)$. Every pair is processed with $O(d)$ work.
+A product of coordinate-wise exponentials can replace the dot-product
+sum with the same asymptotic work and transfer count.
+
+If $d^2\le M<16d$, then $d<16$ and $M<256$. A scalar implementation
+can spill all nonresident partial sums and evaluate the attention
+formula with four fast words and $O(n^2d+nd)$ transfers. For example,
+one register holds the current sum, two hold the next input operands,
+and one holds a temporary product or exponential; completed values
+and outer accumulators may be spilled before the next step. Since
+$M/d<16$, this count is within an absolute constant of
+$nd+n^2d^2/M$. The work remains $O(n^2d)$. This covers the bounded
+parameter cases as well as the regime in which full rows fit.
+
+\section*{AI methodology}
+\phantomsection
+\addcontentsline{toc}{section}{AI methodology}
+This paper was developed with AI assistance from GPT-6 Astra Pro and Claude models.
+
+\begingroup
+\microtypesetup{protrusion=false,expansion=false}
+\urlstyle{same}
+\bibliographystyle{alphaurl}
+\bibliography{references}
+\endgroup
+\end{document}

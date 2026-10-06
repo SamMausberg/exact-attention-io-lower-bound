@@ -1,0 +1,15 @@
+\begin{tikzpicture}[font=\normalsize,>=Latex,
+ box/.style={draw,align=center,inner sep=7pt,minimum height=1.9cm}]
+ \node[box,text width=3.15cm] (in)
+ {$C_t(x)$\\[4pt]initial cache and\\external loads\\$a_t\le2M$};
+ \node[box,right=0.7cm of in,text width=4.1cm] (local)
+ {$B_t=\Phi_t(C_t)$\\[4pt]at most $M$ transfers\\same-epoch reloads\\substituted internally};
+ \node[box,right=0.7cm of local,text width=3.15cm] (out)
+ {$B_t(x)$\\[4pt]all stores and\\final cache\\$b_t\le2M$};
+ \draw[->] (in.east)--(local.west);
+ \draw[->] (local.east)--(out.west);
+ \node[below=0.65cm of local,align=center] (jac)
+ {$\Lambda_t=D\Phi_t(C_t)$: at most $a_tb_t\le4M^2$ entries\\[6pt]
+ $\mathcal H_t=\mathcal H_{t-1}(\Lambda_t)$\qquad $DB_t=\Lambda_t\,DC_t$};
+ \draw[->,dashed] (local.south)--(jac.north);
+\end{tikzpicture}

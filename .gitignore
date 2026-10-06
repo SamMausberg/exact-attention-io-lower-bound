@@ -1,0 +1,10 @@
+# TeX build files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.blg
+paper/*.toc
+paper/*.synctex.gz
+# Lean build output and dependencies
+formalization/.lake/
+formalization/__pycache__/

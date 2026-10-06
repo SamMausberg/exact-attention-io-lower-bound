@@ -1,0 +1,53 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{DFE{\etalchar{+}}22}
+
+\bibitem[Abe80]{abelson1980}
+Harold Abelson.
+\newblock Lower bounds on information transfer in distributed computations.
+\newblock {\em Journal of the ACM}, 27(2):384--392, 1980.
+\newblock \href {https://doi.org/10.1145/322186.322200}
+  {\path{doi:10.1145/322186.322200}}.
+
+\bibitem[DFE{\etalchar{+}}22]{dao2022}
+Tri Dao, Daniel~Y. Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}.
+\newblock {FlashAttention}: Fast and memory-efficient exact attention with
+  {IO}-awareness.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~35, pages 16344--16359. Curran Associates, Inc., 2022.
+\newblock \href {https://doi.org/10.52202/068431-1189}
+  {\path{doi:10.52202/068431-1189}}.
+
+\bibitem[HK81]{hongkung1981}
+Jia-Wei Hong and H.~T. Kung.
+\newblock {I/O} complexity: The red-blue pebble game.
+\newblock In {\em Proceedings of the Thirteenth Annual ACM Symposium on Theory
+  of Computing}, pages 326--333. ACM, 1981.
+\newblock \href {https://doi.org/10.1145/800076.802486}
+  {\path{doi:10.1145/800076.802486}}.
+
+\bibitem[Str69]{strassen1969}
+Volker Strassen.
+\newblock Gaussian elimination is not optimal.
+\newblock {\em Numerische Mathematik}, 13(4):354--356, 1969.
+\newblock \href {https://doi.org/10.1007/BF02165411}
+  {\path{doi:10.1007/BF02165411}}.
+
+\bibitem[SXYY26]{sahaxuyeyu2026}
+Barna Saha, Yinzhan Xu, Christopher Ye, and Hantao Yu.
+\newblock On the computational hardness of transformers.
+\newblock In {\em Proceedings of the 58th Annual ACM Symposium on Theory of
+  Computing}, pages 1073--1084. ACM, 2026.
+\newblock arXiv:2603.11332v1.
+\newblock \href {https://doi.org/10.1145/3798129.3800819}
+  {\path{doi:10.1145/3798129.3800819}}.
+
+\bibitem[SY24]{sahaye2024}
+Barna Saha and Christopher Ye.
+\newblock {I/O} complexity of attention, or how optimal is {FlashAttention}?
+\newblock In {\em Proceedings of the 41st International Conference on Machine
+  Learning}, volume 235 of {\em Proceedings of Machine Learning Research},
+  pages 43024--43042. PMLR, 2024.
+\newblock arXiv:2402.07443v1.
+\newblock URL: \url{https://proceedings.mlr.press/v235/saha24a.html}.
+
+\end{thebibliography}
