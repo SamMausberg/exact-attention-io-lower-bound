@@ -211,7 +211,11 @@ $QK^{\mathsf T}$, though it need not store that matrix
 Theorem~4.8 gives $\Omega(\min\{n^2d^2/M,n^2\})$ transfers. These
 numbers refer to arXiv:2402.07443v1. The present model instead allows
 arbitrary real words and analytic arithmetic, but no digit extraction
-or real-to-integer conversion. The blocking comparison is the upper
+or real-to-integer conversion. Their bound is stronger in $d$ but
+applies to programs that compute $QK^{\mathsf T}$. To our knowledge,
+\cref{thm:attention} is the first nontrivial I/O lower bound for exact
+attention that does not prescribe the computation of scores or kernels.
+The blocking comparison is the upper
 bound of \cite[Theorem~2]{dao2022}; \cref{app:upper} supplies a schedule
 for the full parameter range in \cref{eq:bracket}.
 
