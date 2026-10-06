@@ -1,0 +1,310 @@
+{
+  "status": "passed",
+  "forbidden_tokens": [],
+  "build_returncode": 0,
+  "audited_theorems": 60,
+  "listed_theorems": 60,
+  "axioms": {
+    "ExactAttention.ExpPoly.coeff_eq_zero_of_eventually_sum_mul_exp": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.exp_poly_relation_eq_zero": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.algebraicIndependent_exp_poly": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnOutput_isLinearMap": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.hasDerivAt_attnOutput_value": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnWeight_div_last": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnOutput_eq_ratio": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.hasDerivAt_attnRatio": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ratioExponent_intCombNonconst": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnRatio_relation_eq_zero": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnRatio_algebraicIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnRatio_eq_deriv_div_deriv": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attnOutput_deriv_mem_ratioField": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.OpenPath.Expr.analyticAt_eval": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.exists_open_path": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.isDomain_analyticRing": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.polyToAnalytic_injective": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ratFuncToAnalytic_injective": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.History.Trace.row_mem_history": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.epochs_le": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.history_bound": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attention_bound_of_trace": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.chain_rule_jacobian": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.boundary_factorization": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.epoch_chain_rule": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ratio_algebraicIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.ratio_eq_jacobian_div": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.attention_io_lower_bound": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.Strassen.products_eq": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_mul": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_minor_eq": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_minor_det": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_base_linearIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.Strassen.mul_transpose_apply_of_tensor": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_bilinear": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_bilinear_linearIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_forms_span": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_eq_zero_of_forms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_forms_ne_zero": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.strassen_decomposition": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_kernel_product": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_hasDerivAt_aux": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_leaf_recovery": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_expPoly_isHomogeneous": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_expPoly_linearIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.BilinearPrefix.intCombNonconst_of_linearIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_intCombNonconst": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.bilinearPrefix_leafExp_algebraicIndependent": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.subintermediate": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.no_certificate_charge": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.Certificate.sigma_lt_three": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.finrank_range_fderiv_le_of_eqOn_comp": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.le_of_eqOn_comp_id": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairRank_card_le_degree_sums": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairRank_card_le_of_degree_sums_le": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairRank_exists_dense_open": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairRank": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.compression": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairCover_epoch": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "ExactAttention.pairCover": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ]
+  },
+  "non_standard": {}
+}
