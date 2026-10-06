@@ -1,5 +1,5 @@
 \newcommand{\etalchar}[1]{$^{#1}$}
-\begin{thebibliography}{DFE{\etalchar{+}}22}
+\begin{thebibliography}{BDH{\etalchar{+}}26}
 
 \bibitem[Abe80]{abelson1980}
 Harold Abelson.
@@ -7,6 +7,14 @@ Harold Abelson.
 \newblock {\em Journal of the ACM}, 27(2):384--392, 1980.
 \newblock \href {https://doi.org/10.1145/322186.322200}
   {\path{doi:10.1145/322186.322200}}.
+
+\bibitem[BDH{\etalchar{+}}26]{blanc2026}
+Manon Blanc, Prateek Dwivedi, Magnus Rahbek~Dalgaard Hansen, Nutan Limaye, and
+  Meena Mahajan.
+\newblock Tight lower bounds for algebraic communication and applications,
+  2026.
+\newblock arXiv:2609.17082v1.
+\newblock URL: \url{https://arxiv.org/abs/2609.17082v1}.
 
 \bibitem[DFE{\etalchar{+}}22]{dao2022}
 Tri Dao, Daniel~Y. Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}.
@@ -16,6 +24,13 @@ Tri Dao, Daniel~Y. Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}.
   volume~35, pages 16344--16359. Curran Associates, Inc., 2022.
 \newblock \href {https://doi.org/10.52202/068431-1189}
   {\path{doi:10.52202/068431-1189}}.
+
+\bibitem[Gri08]{grigoriev2008}
+Dima Grigoriev.
+\newblock Probabilistic communication complexity over the reals.
+\newblock {\em Computational Complexity}, 17(4):536--548, 2008.
+\newblock \href {https://doi.org/10.1007/s00037-008-0255-z}
+  {\path{doi:10.1007/s00037-008-0255-z}}.
 
 \bibitem[HK81]{hongkung1981}
 Jia-Wei Hong and H.~T. Kung.

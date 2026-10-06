@@ -155,7 +155,9 @@ the bounds remain
 where $\IO^*$ is the least worst-case cost among exact families with
 $O(n^2d)$ work. The lower bound applies more broadly, as the theorem
 states. We do not prove even the intermediate
-$\Omega(nd+n^2d/M)$ bound when $d$ grows.
+$\Omega(nd+n^2d/M)$ bound when $d$ grows. The term $n^2/M$ exceeds the
+compulsory $nd$ only when $n>Md$, so the lower bound is informative in
+the long-context regime.
 
 The proof follows derivatives through the memory schedule. Since
 $Y$ is linear in $V$, its Jacobian contains every entry of $A$.
@@ -222,9 +224,12 @@ for the full parameter range in \cref{eq:bracket}.
 
 Abelson used derivatives to lower-bound communication between
 processors \cite{abelson1980}. The numerical factorisation argument
-in \cref{lem:factor-rank} uses this chain-rule principle. Here we
-count generators contributed by local Jacobians throughout an
-execution. The extended Baur--Strassen theorem of Saha, Xu, Ye, and Yu
+in \cref{lem:factor-rank} uses this chain-rule principle. Grigoriev
+\cite{grigoriev2008} and Blanc, Dwivedi, Hansen, Limaye, and Mahajan
+\cite{blanc2026} prove lower bounds for two-party protocols that
+exchange values of polynomials in real inputs. Here we count generators
+contributed by local Jacobians throughout an execution, and the input
+is not split between parties. The extended Baur--Strassen theorem of Saha, Xu, Ye, and Yu
 bounds differentiation in arithmetic circuits with exponentials and
 logarithms \cite[Theorem~4.4]{sahaxuyeyu2026}; that circuit-size
 statement does not by itself preserve an I/O schedule. Our argument
@@ -918,7 +923,8 @@ parameter cases as well as the regime in which full rows fit.
 \section*{AI methodology}
 \phantomsection
 \addcontentsline{toc}{section}{AI methodology}
-This paper was developed with AI assistance from GPT-6 Astra Pro and Claude models.
+The proofs in this paper were developed with AI assistance from GPT-6
+Astra Pro and Claude models and were checked line by line by the author.
 
 \begingroup
 \microtypesetup{protrusion=false,expansion=false}

@@ -19,6 +19,9 @@ run_latex main
 "$bibtex_cmd" main
 run_latex main
 run_latex main
+if grep -q 'Rerun to get' main.log; then
+  run_latex main
+fi
 if grep -E 'undefined references|undefined citations|multiply defined|Overfull' main.log; then
   echo "Unresolved reference or layout overflow in main.log." >&2
   exit 1
