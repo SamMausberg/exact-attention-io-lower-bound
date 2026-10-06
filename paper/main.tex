@@ -235,6 +235,16 @@ logarithms \cite[Theorem~4.4]{sahaxuyeyu2026}; that circuit-size
 statement does not by itself preserve an I/O schedule. Our argument
 uses no numerical differentiation algorithm.
 
+\paragraph{Formalization.}
+A Lean~4 formalization accompanies this paper. It proves
+\cref{lem:independence,lem:open,lem:factor-rank,lem:pair-rank,thm:compression},
+the identities of \cref{lem:strassen}, and the independence and derivative
+identities behind \cref{prop:attention-field,thm:bilinear-prefix}. It also
+proves \cref{thm:history} for execution traces and derives
+\cref{eq:main-lower} for every trace whose outputs carry the Jacobian of
+attention. The passage from a program to its trace and the transfer counts
+of the constructions are not formalized.
+
 \section{The machine and its open execution paths}
 \label{sec:model}
 For each integer triple $(n,d,M)$, a machine has $M$ fast real registers
